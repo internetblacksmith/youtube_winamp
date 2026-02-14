@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube Winamp</title>
+  <link rel="stylesheet" href="winamp.css">
+</head>
+<body>
+  <div class="scale-wrapper">
+    <div id="winamp" class="winamp stopped">
+
+      <!-- TITLE BAR (0,0 — 275×14) -->
+      <div id="title-bar">
+        <button type="button" id="btn-minimize" title="Minimize"></button>
+        <button type="button" id="btn-shade" title="Shade"></button>
+        <button type="button" id="btn-close" title="Close"></button>
+      </div>
+
+      <!-- CLUTTER BAR (10,22 — 8×43) -->
+      <div id="clutter-bar"></div>
+
+      <!-- STATUS INDICATOR (26,28 — 9×9) -->
+      <div id="play-pause" class="stopped"></div>
+
+      <!-- TIME DISPLAY (39,26 — 59×13) -->
+      <div id="time" title="Click to toggle elapsed/remaining">
+        <div id="minus-sign" class="hidden"></div>
+        <div id="minute-first-digit" class="digit digit-0"></div>
+        <div id="minute-second-digit" class="digit digit-0"></div>
+        <div id="second-first-digit" class="digit digit-0"></div>
+        <div id="second-second-digit" class="digit digit-0"></div>
+      </div>
+
+      <!-- VISUALIZER (24,43 — 76×16) -->
+      <canvas id="visualizer" width="76" height="16"></canvas>
+
+      <!-- MARQUEE (111,24 — 154×6) -->
+      <div id="marquee">
+        <canvas id="marquee-canvas" width="154" height="6"></canvas>
+      </div>
+
+      <!-- MEDIA INFO -->
+      <div class="media-info">
+        <canvas id="kbps" width="15" height="6"></canvas>
+        <canvas id="khz" width="10" height="6"></canvas>
+        <div class="mono-stereo">
+          <div id="mono"></div>
+          <div id="stereo" class="active"></div>
+        </div>
+      </div>
+
+      <!-- VOLUME (107,57 — 68×13) -->
+      <div id="volume">
+        <input type="range" id="volume-slider" min="0" max="100" value="50">
+      </div>
+
+      <!-- BALANCE (177,57 — 38×13) -->
+      <div id="balance">
+        <input type="range" id="balance-slider" min="-100" max="100" value="0" disabled>
+      </div>
+
+      <!-- EQ + PL (219,58 — 23×12 each) -->
+      <div class="windows">
+        <button type="button" id="btn-eq"></button>
+        <button type="button" id="btn-pl"></button>
+      </div>
+
+      <!-- POSITION BAR (16,72 — 248×10) -->
+      <div id="position">
+        <input type="range" id="seek-slider" min="0" max="1000" value="0">
+      </div>
+
+      <!-- TRANSPORT (16,88) -->
+      <button type="button" id="btn-prev" title="Previous"></button>
+      <button type="button" id="btn-play" title="Play"></button>
+      <button type="button" id="btn-pause" title="Pause"></button>
+      <button type="button" id="btn-stop" title="Stop"></button>
+      <button type="button" id="btn-next" title="Next"></button>
+
+      <!-- EJECT (136,89 — 22×16) -->
+      <button type="button" id="btn-eject" title="Open YouTube Music"></button>
+
+      <!-- SHUFFLE / REPEAT -->
+      <button type="button" id="btn-shuffle" title="Shuffle"></button>
+      <button type="button" id="btn-repeat" title="Repeat"></button>
+
+    </div>
+  </div>
+
+  <script src="winamp.js"></script>
+</body>
+</html>

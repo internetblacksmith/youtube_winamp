@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Winamp",
+  "version": "1.1.0",
+  "description": "Classic Winamp 2.x player that controls YouTube Music, Spotify, and Amazon Music",
+  "permissions": ["activeTab", "tabs"],
+  "host_permissions": [
+    "*://music.youtube.com/*",
+    "*://open.spotify.com/*",
+    "*://music.amazon.com/*"
+  ],
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Open YouTube Winamp"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://music.youtube.com/*", "*://open.spotify.com/*", "*://music.amazon.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://music.youtube.com/*"],
+      "js": ["bridge-youtube.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["*://open.spotify.com/*"],
+      "js": ["bridge-spotify.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["*://music.amazon.com/*"],
+      "js": ["bridge-amazon.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["skins/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
