@@ -1,0 +1,676 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   YouTube Winamp — Layout CSS
+   ALL coordinates at ORIGINAL 1x (275×116). No scaling.
+   All visual styling (colors, sprites) comes from the skin loader.
+   Coordinates from Webamp (github.com/captbaritone/webamp).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 275px;
+  background: #3a3a26;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  resize: none;
+}
+
+/* ── Scale wrapper: no scaling, native 275×116 ── */
+.scale-wrapper {
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+}
+
+/* ═══ MAIN WINDOW ═══ 275×116 */
+.winamp {
+  width: 275px;
+  height: 116px;
+  position: relative;
+  overflow: hidden;
+  background-size: 275px 116px;
+  image-rendering: pixelated;
+}
+
+/* ═══ TITLE BAR ═══ 0,0 — 275×14 */
+#title-bar {
+  position: absolute;
+  top: 0; left: 0;
+  width: 275px; height: 14px;
+  background-size: 275px 14px;
+}
+
+/* Title bar buttons — 9×9 each */
+#title-bar button {
+  position: absolute;
+  top: 3px;
+  width: 9px; height: 9px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: 9px 9px;
+  background-repeat: no-repeat;
+}
+#btn-minimize { left: 244px; }
+#btn-shade    { left: 254px; }
+#btn-close    { left: 264px; }
+
+/* ═══ CLUTTER BAR ═══ 10,22 — 8×43 */
+#clutter-bar {
+  position: absolute;
+  top: 22px; left: 10px;
+  width: 8px; height: 43px;
+  background-size: 8px 43px;
+  background-repeat: no-repeat;
+}
+
+/* ═══ PLAY/PAUSE STATUS ═══ 26,28 — 9×9 */
+#play-pause {
+  position: absolute;
+  top: 28px; left: 26px;
+  width: 9px; height: 9px;
+  background-size: 9px 9px;
+  background-repeat: no-repeat;
+}
+
+/* ═══ TIME DISPLAY ═══ 39,26 — 59×13 */
+#time {
+  position: absolute;
+  left: 39px; top: 26px;
+  width: 59px; height: 13px;
+  cursor: pointer;
+}
+
+#minus-sign {
+  position: absolute;
+  top: 6px; left: -1px;
+  width: 5px; height: 1px;
+  background-size: 5px 1px;
+  background-repeat: no-repeat;
+}
+
+.digit {
+  position: absolute;
+  width: 9px; height: 13px;
+  background-size: 9px 13px;
+  background-repeat: no-repeat;
+}
+#minute-first-digit  { left: 9px; }
+#minute-second-digit { left: 21px; }
+#second-first-digit  { left: 39px; }
+#second-second-digit { left: 51px; }
+
+/* Paused blink */
+.winamp.paused #time {
+  animation: blink 2s step-start 1s infinite;
+}
+@keyframes blink {
+  0%   { visibility: visible; }
+  50%  { visibility: hidden; }
+  100% { visibility: visible; }
+}
+
+/* ═══ VISUALIZER ═══ 24,43 — 76×16 */
+#visualizer {
+  position: absolute;
+  top: 43px; left: 24px;
+  width: 76px; height: 16px;
+  image-rendering: pixelated;
+}
+
+/* ═══ MARQUEE ═══ 111,24 — 154×6 */
+#marquee {
+  position: absolute;
+  left: 111px; top: 24px;
+  width: 154px; height: 6px;
+  overflow: hidden;
+}
+#marquee-canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* ═══ MEDIA INFO ═══ */
+.media-info #kbps {
+  position: absolute;
+  left: 111px; top: 43px;
+  width: 15px; height: 6px;
+  image-rendering: pixelated;
+}
+.media-info #khz {
+  position: absolute;
+  left: 156px; top: 43px;
+  width: 10px; height: 6px;
+  image-rendering: pixelated;
+}
+.media-info .mono-stereo {
+  position: absolute;
+  left: 212px; top: 41px;
+  width: 57px; height: 12px;
+}
+.media-info .mono-stereo div {
+  position: absolute;
+  height: 12px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+#mono   { width: 27px; left: 0; }
+#stereo { width: 29px; left: 27px; }
+
+/* ═══ VOLUME ═══ 107,57 — 68×13 */
+#volume {
+  position: absolute;
+  left: 107px; top: 57px;
+  width: 68px; height: 13px;
+  background-position: 0 0;
+}
+#volume input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 65px; height: 13px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  margin: 0; padding: 0;
+  display: block;
+}
+#volume input::-webkit-slider-runnable-track {
+  height: 13px;
+  background: transparent;
+}
+#volume input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 11px;
+  margin-top: 1px;
+  background-size: 14px 11px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* ═══ BALANCE ═══ 177,57 — 38×13 */
+#balance {
+  position: absolute;
+  left: 177px; top: 57px;
+  width: 38px; height: 13px;
+  background-position: 0 0;
+}
+#balance input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 38px; height: 13px;
+  background: transparent;
+  outline: none;
+  cursor: default;
+  margin: 0; padding: 0;
+  display: block;
+}
+#balance input::-webkit-slider-runnable-track {
+  height: 13px;
+  background: transparent;
+}
+#balance input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 11px;
+  margin-top: 1px;
+  background-size: 14px 11px;
+  background-repeat: no-repeat;
+}
+
+/* ═══ EQ + PL BUTTONS ═══ 219,58 — 23×12 each */
+.windows {
+  position: absolute;
+  left: 219px; top: 58px;
+  width: 46px; height: 12px;
+}
+.windows button {
+  position: absolute;
+  width: 23px; height: 12px;
+  border: none; padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: 23px 12px;
+  background-repeat: no-repeat;
+}
+#btn-eq { left: 0; }
+#btn-pl { left: 23px; }
+
+/* ═══ POSITION/SEEK BAR ═══ 16,72 — 248×10 */
+#position {
+  position: absolute;
+  left: 16px; top: 72px;
+  width: 248px; height: 10px;
+  background-size: 248px 10px;
+  background-repeat: no-repeat;
+}
+#position input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 248px; height: 10px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  margin: 0; padding: 0;
+  display: block;
+  position: relative;
+}
+#position input::-webkit-slider-runnable-track {
+  height: 10px;
+  background: transparent;
+}
+#position input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 29px; height: 10px;
+  background-size: 29px 10px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  position: relative;
+}
+/* Hide thumb when stopped */
+.winamp.stopped #position input::-webkit-slider-thumb {
+  visibility: hidden;
+}
+
+/* ═══ TRANSPORT BUTTONS ═══ y=88, each 23×18 */
+#btn-prev, #btn-play, #btn-pause, #btn-stop, #btn-next {
+  position: absolute;
+  top: 88px;
+  width: 23px; height: 18px;
+  border: none; padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+#btn-prev  { left: 16px; }
+#btn-play  { left: 39px; }
+#btn-pause { left: 62px; }
+#btn-stop  { left: 85px; }
+#btn-next  { left: 108px; width: 22px; }
+
+/* ═══ EJECT ═══ 136,89 — 22×16 */
+#btn-eject {
+  position: absolute;
+  top: 89px; left: 136px;
+  width: 22px; height: 16px;
+  border: none; padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: 22px 16px;
+  background-repeat: no-repeat;
+}
+
+/* ═══ SHUFFLE / REPEAT ═══ */
+#btn-shuffle, #btn-repeat {
+  position: absolute;
+  top: 89px;
+  height: 15px;
+  border: none; padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+#btn-shuffle { left: 164px; width: 47px; }
+#btn-repeat  { left: 210px; width: 28px; }
+
+/* ═══ DISCONNECTED STATE ═══ */
+.winamp.disconnected #time,
+.winamp.disconnected #marquee,
+.winamp.disconnected #visualizer,
+.winamp.disconnected .media-info {
+  opacity: 0.3;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PLAYLIST EDITOR — 275px wide, variable height
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.playlist-window.hidden { display: none; }
+
+.playlist-window {
+  width: 275px;
+  position: relative;
+  image-rendering: pixelated;
+}
+
+/* ── PL TITLE BAR ── 275×20 */
+#pl-title-bar {
+  display: flex;
+  width: 275px;
+  height: 20px;
+}
+#pl-title-left {
+  width: 25px;
+  height: 20px;
+  flex-shrink: 0;
+  background-size: 25px 20px;
+  background-repeat: no-repeat;
+}
+#pl-title-stretch {
+  flex: 1;
+  height: 20px;
+  min-width: 0;
+}
+#pl-title-right {
+  width: 25px;
+  height: 20px;
+  flex-shrink: 0;
+  position: relative;
+  background-size: 25px 20px;
+  background-repeat: no-repeat;
+}
+#pl-btn-collapse,
+#pl-btn-close {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: 9px 9px;
+  background-repeat: no-repeat;
+}
+#pl-btn-collapse { top: 3px; left: 0; }
+#pl-btn-close    { top: 3px; left: 10px; }
+
+/* ── PL TRACK AREA ── 275×variable */
+#pl-tracks-area {
+  display: flex;
+  width: 275px;
+  height: 116px; /* 8 tracks × 13px + some padding = ~116 */
+}
+#pl-left-border {
+  width: 12px;
+  flex-shrink: 0;
+}
+#pl-track-list {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background-color: #1A120A;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8px;
+  line-height: 13px;
+}
+#pl-right-border {
+  width: 20px;
+  flex-shrink: 0;
+  position: relative;
+}
+#pl-scrollbar {
+  position: absolute;
+  top: 0;
+  left: 6px;
+  width: 8px;
+  height: 100%;
+}
+#pl-scroll-handle {
+  width: 8px;
+  height: 18px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  background-size: 8px 18px;
+  background-repeat: no-repeat;
+}
+
+/* ── PL TRACK ROWS ── */
+.pl-track {
+  height: 13px;
+  line-height: 13px;
+  padding: 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+  display: flex;
+  color: #FF8924;
+}
+.pl-track.pl-current {
+  color: #FFFF00;
+}
+.pl-track.pl-selected {
+  background-color: #944E11;
+}
+.pl-track-number {
+  flex-shrink: 0;
+  margin-right: 3px;
+  text-align: right;
+  min-width: 14px;
+}
+.pl-track-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pl-track-duration {
+  flex-shrink: 0;
+  margin-left: 3px;
+  text-align: right;
+}
+
+/* ── PL BOTTOM BAR ── 275×38 */
+#pl-bottom {
+  display: flex;
+  width: 275px;
+  height: 38px;
+}
+#pl-bottom-left {
+  width: 125px;
+  height: 38px;
+  flex-shrink: 0;
+  background-size: 125px 38px;
+  background-repeat: no-repeat;
+}
+#pl-bottom-tile {
+  flex: 1;
+  height: 38px;
+  min-width: 0;
+}
+#pl-bottom-right {
+  width: 150px;
+  height: 38px;
+  flex-shrink: 0;
+  background-size: 150px 38px;
+  background-repeat: no-repeat;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EQUALIZER WINDOW — 275×116
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.eq-window.hidden { display: none; }
+
+.eq-window {
+  width: 275px;
+  height: 116px;
+  position: relative;
+  overflow: hidden;
+  image-rendering: pixelated;
+  background-size: 275px 116px;
+  background-repeat: no-repeat;
+}
+
+/* ── EQ TITLE BAR ── 275×14 */
+#eq-title-bar {
+  position: absolute;
+  top: 0; left: 0;
+  width: 275px; height: 14px;
+  background-size: 275px 14px;
+  background-repeat: no-repeat;
+}
+
+#eq-btn-close {
+  position: absolute;
+  top: 3px; left: 264px;
+  width: 9px; height: 9px;
+  border: none; padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: 9px 9px;
+  background-repeat: no-repeat;
+}
+
+/* ── EQ tooltip ── */
+.eq-tooltip {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.9);
+  color: #00ff00;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9px;
+  line-height: 12px;
+  padding: 4px 8px;
+  white-space: nowrap;
+  z-index: 20;
+  pointer-events: none;
+  border: 1px solid #00ff00;
+}
+.eq-tooltip.hidden { display: none; }
+
+/* ── EQ ON / AUTO / PRESETS buttons ── */
+#eq-btn-on {
+  position: absolute;
+  left: 14px; top: 18px;
+  width: 26px; height: 12px;
+  border: none; padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: 26px 12px;
+  background-repeat: no-repeat;
+  font-size: 0; color: transparent; /* hide text, skin sprite replaces */
+}
+
+#eq-btn-auto {
+  position: absolute;
+  left: 39px; top: 18px;
+  width: 33px; height: 12px;
+  border: none; padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: 33px 12px;
+  background-repeat: no-repeat;
+  font-size: 0; color: transparent;
+}
+
+#eq-graph {
+  position: absolute;
+  left: 86px; top: 17px;
+  width: 113px; height: 19px;
+  background-size: 113px 19px;
+  background-repeat: no-repeat;
+}
+#eq-graph-canvas {
+  display: block;
+  width: 113px; height: 19px;
+  image-rendering: pixelated;
+  position: relative;
+  z-index: 1;
+}
+
+#eq-btn-presets {
+  position: absolute;
+  left: 217px; top: 18px;
+  width: 44px; height: 12px;
+  border: none; padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-size: 44px 12px;
+  background-repeat: no-repeat;
+  font-size: 0; color: transparent;
+}
+
+/* ── EQ SLIDERS ── */
+#eq-preamp {
+  position: absolute;
+  left: 21px; top: 38px;
+  width: 14px; height: 63px;
+  z-index: 2;
+}
+
+#eq-sliders {
+  position: absolute;
+  left: 78px; top: 38px;
+  width: 0; height: 63px; /* children absolutely positioned */
+  z-index: 2;
+}
+
+#eq-sliders .eq-slider-track {
+  position: absolute;
+  width: 14px; height: 63px;
+}
+#eq-sliders .eq-slider-track:nth-child(1)  { left: 0; }
+#eq-sliders .eq-slider-track:nth-child(2)  { left: 18px; }
+#eq-sliders .eq-slider-track:nth-child(3)  { left: 36px; }
+#eq-sliders .eq-slider-track:nth-child(4)  { left: 54px; }
+#eq-sliders .eq-slider-track:nth-child(5)  { left: 72px; }
+#eq-sliders .eq-slider-track:nth-child(6)  { left: 90px; }
+#eq-sliders .eq-slider-track:nth-child(7)  { left: 108px; }
+#eq-sliders .eq-slider-track:nth-child(8)  { left: 126px; }
+#eq-sliders .eq-slider-track:nth-child(9)  { left: 144px; }
+#eq-sliders .eq-slider-track:nth-child(10) { left: 162px; }
+
+.eq-slider-track {
+  position: relative;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.eq-slider-thumb {
+  position: absolute;
+  width: 11px; height: 11px;
+  left: 1px; /* centered in 14px track */
+  top: 26px; /* centered: (63 - 11) / 2 = 26 */
+  cursor: pointer;
+  background-size: 11px 11px;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+/* ═══ FALLBACK (before skin loads) ═══ */
+.winamp {
+  background-color: #3a3a26;
+}
+#title-bar {
+  background-color: #0000a0;
+}
+#title-bar button {
+  background-color: #555548;
+}
+#btn-prev, #btn-play, #btn-pause, #btn-stop, #btn-next,
+#btn-eject {
+  background-color: #555548;
+}
+#btn-shuffle, #btn-repeat {
+  background-color: #555548;
+}
+.windows button {
+  background-color: #555548;
+}
+#position {
+  background-color: #000;
+}
+#volume, #balance {
+  background-color: #000;
+}
+/* EQ fallbacks */
+.eq-window { background-color: #3a3a26; }
+#eq-title-bar { background-color: #0000a0; }
+#eq-btn-close { background-color: #555548; }
+#eq-btn-on, #eq-btn-auto, #eq-btn-presets { background-color: #555548; }
+#eq-graph { background-color: #000; }
+.eq-slider-thumb { background-color: #555548; }
+/* Playlist fallbacks */
+#pl-title-bar { background-color: #0000a0; }
+#pl-left-border, #pl-right-border { background-color: #3a3a26; }
+#pl-bottom-left, #pl-bottom-right, #pl-bottom-tile { background-color: #3a3a26; }
+#pl-scroll-handle { background-color: #555548; }
+/* Skin CSS overrides all of the above once loaded */
