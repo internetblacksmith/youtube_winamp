@@ -85,8 +85,77 @@
       <button type="button" id="btn-repeat" title="Repeat"></button>
 
     </div>
+
+    <!-- ═══ EQUALIZER ═══ -->
+    <div id="eq-window" class="eq-window hidden">
+      <!-- TITLE BAR — 275×14 -->
+      <div id="eq-title-bar">
+        <button type="button" id="eq-btn-close" title="Close equalizer"></button>
+      </div>
+
+      <!-- ON / AUTO / GRAPH / PRESETS row -->
+      <button type="button" id="eq-btn-on">ON</button>
+      <div id="eq-tooltip" class="eq-tooltip hidden">Decorative only — for historical accuracy</div>
+      <button type="button" id="eq-btn-auto" title="Auto EQ">AUTO</button>
+      <div id="eq-graph"><canvas id="eq-graph-canvas" width="113" height="19"></canvas></div>
+      <button type="button" id="eq-btn-presets" title="Presets">PRESETS</button>
+
+      <!-- PREAMP + 10-BAND SLIDERS -->
+      <div id="eq-preamp" class="eq-slider-track">
+        <div class="eq-slider-thumb" data-band="preamp"></div>
+      </div>
+      <div id="eq-sliders">
+        <div class="eq-slider-track" data-freq="60"><div class="eq-slider-thumb" data-band="0"></div></div>
+        <div class="eq-slider-track" data-freq="170"><div class="eq-slider-thumb" data-band="1"></div></div>
+        <div class="eq-slider-track" data-freq="310"><div class="eq-slider-thumb" data-band="2"></div></div>
+        <div class="eq-slider-track" data-freq="600"><div class="eq-slider-thumb" data-band="3"></div></div>
+        <div class="eq-slider-track" data-freq="1k"><div class="eq-slider-thumb" data-band="4"></div></div>
+        <div class="eq-slider-track" data-freq="3k"><div class="eq-slider-thumb" data-band="5"></div></div>
+        <div class="eq-slider-track" data-freq="6k"><div class="eq-slider-thumb" data-band="6"></div></div>
+        <div class="eq-slider-track" data-freq="12k"><div class="eq-slider-thumb" data-band="7"></div></div>
+        <div class="eq-slider-track" data-freq="14k"><div class="eq-slider-thumb" data-band="8"></div></div>
+        <div class="eq-slider-track" data-freq="16k"><div class="eq-slider-thumb" data-band="9"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ PLAYLIST EDITOR ═══ -->
+    <div id="playlist-window" class="playlist-window hidden">
+      <!-- TITLE BAR — 275×20 -->
+      <div id="pl-title-bar">
+        <div id="pl-title-left"></div>
+        <div id="pl-title-stretch"></div>
+        <div id="pl-title-right">
+          <button type="button" id="pl-btn-collapse" title="Shade"></button>
+          <button type="button" id="pl-btn-close" title="Close playlist"></button>
+        </div>
+      </div>
+
+      <!-- TRACK LIST — 275×variable -->
+      <div id="pl-tracks-area">
+        <div id="pl-left-border"></div>
+        <div id="pl-track-list"></div>
+        <div id="pl-right-border">
+          <div id="pl-scrollbar">
+            <div id="pl-scroll-handle"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM BAR — 275×38 -->
+      <div id="pl-bottom">
+        <div id="pl-bottom-left"></div>
+        <div id="pl-bottom-tile"></div>
+        <div id="pl-bottom-right"></div>
+      </div>
+    </div>
+
   </div>
 
+  <!-- Hidden file input for loading custom skins -->
+  <input type="file" id="skin-file-input" accept=".wsz,.zip" style="display:none">
+
+  <script src="vendor/jszip.min.js"></script>
+  <script src="skin-loader.js"></script>
   <script src="winamp.js"></script>
 </body>
 </html>
