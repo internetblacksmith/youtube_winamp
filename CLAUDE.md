@@ -14,6 +14,5 @@ npx eslint *.js
 
 - Pin dependencies to exact versions (e.g., `"package": "1.2.3"`)
 - Keep docs updated with every code change
-- Keep Makefile updated - add new tasks as project evolves
 - No build tools or frameworks — raw JS/CSS/HTML only
 - All DOM selectors in bridge files must have fallbacks for service UI changes

@@ -42,4 +42,4 @@ If this privacy policy is updated, the changes will be posted here with an updat
 
 ## Contact
 
-If you have questions about this privacy policy, please open an issue on the [GitHub repository](https://github.com/user/youtube-winamp/issues).
+If you have questions about this privacy policy, please open an issue on the [GitHub repository](https://github.com/internetblacksmith/youtube_winamp/issues).
