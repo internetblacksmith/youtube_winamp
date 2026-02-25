@@ -4,6 +4,61 @@
 (function () {
   "use strict";
 
+  // ── Audio Analysis (real FFT from <video> element) ────────────────────
+  var audioCtx = null;
+  var analyser = null;
+  var freqData = null;
+  var audioConnected = false;
+  var audioInitAttempted = false;
+  var NUM_VIS_BARS = 19;
+
+  function initAudioAnalysis() {
+    if (audioInitAttempted) return;
+    audioInitAttempted = true;
+    try {
+      var video = document.querySelector("video");
+      if (!video) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256; // 128 frequency bins
+      analyser.smoothingTimeConstant = 0.7;
+      var source = audioCtx.createMediaElementSource(video);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination); // keep audio audible
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      audioConnected = true;
+    } catch (e) {
+      audioConnected = false;
+    }
+  }
+
+  function getFrequencyBars() {
+    if (!audioConnected || !analyser || !freqData) return null;
+    // Resume suspended AudioContext (user gesture requirement)
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+    analyser.getByteFrequencyData(freqData);
+    // Check if all zeros (CORS/DRM block)
+    var hasSignal = false;
+    for (var i = 0; i < freqData.length; i++) {
+      if (freqData[i] > 0) { hasSignal = true; break; }
+    }
+    if (!hasSignal) return null;
+    // Bin 128 FFT bins down to 19 bars (linear grouping)
+    var n = freqData.length;
+    var bars = [];
+    for (var b = 0; b < NUM_VIS_BARS; b++) {
+      var lo = Math.floor(b * n / NUM_VIS_BARS);
+      var hi = Math.floor((b + 1) * n / NUM_VIS_BARS);
+      if (hi <= lo) hi = lo + 1;
+      var sum = 0;
+      for (var j = lo; j < hi && j < n; j++) sum += freqData[j];
+      bars.push((sum / (hi - lo)) / 255);
+    }
+    return bars;
+  }
+
   function getPlayer() {
     return document.getElementById("movie_player");
   }
@@ -289,6 +344,10 @@
       data = getState();
     } else if (type === "GET_QUEUE") {
       data = getQueue();
+    } else if (type === "GET_AUDIO_DATA") {
+      initAudioAnalysis();
+      var bars = getFrequencyBars();
+      data = bars ? { bars: bars, real: true } : { bars: null, real: false };
     } else if (type === "COMMAND") {
       data = executeCommand(e.data.command, e.data.value);
     }

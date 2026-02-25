@@ -3,7 +3,7 @@
   "name": "YouTube Winamp",
   "version": "1.1.0",
   "description": "Classic Winamp 2.x player that controls YouTube Music, Spotify, and Amazon Music",
-  "permissions": ["activeTab", "tabs"],
+  "permissions": ["activeTab", "tabs", "storage"],
   "host_permissions": [
     "*://music.youtube.com/*",
     "*://open.spotify.com/*",
@@ -49,6 +49,9 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "sandbox": {
+    "pages": ["vis-sandbox.html"]
   },
   "web_accessible_resources": [
     {

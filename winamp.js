@@ -33,6 +33,9 @@
   // EQ state
   let eqVisible = false;
 
+  // Skin selector state
+  let skinSelectorVisible = false;
+
   // Playlist state
   let playlistVisible = false;
   let playlistTracks = [];
@@ -85,6 +88,9 @@
   const plScrollHandle = $("#pl-scroll-handle");
   const plScrollbar    = $("#pl-scrollbar");
   const plBtnClose     = $("#pl-btn-close");
+  const skinSelector   = $("#skin-selector");
+  const skinSelectorList = $("#skin-selector-list");
+  const skinAddBtn     = $("#skin-add-btn");
 
   // ── Messaging ──────────────────────────────────────────────────────────
   function sendMessage(msg) {
@@ -275,11 +281,13 @@
 
   function startMarquee() {
     const CHAR_W = window.SkinLoader ? window.SkinLoader.CHAR_W : 5;
-    const chars = window._skinCharacters || {};
-    const hasChars = Object.keys(chars).length > 0;
 
     function drawMarquee() {
       if (!marqueeCtx) { marqueeFrame = null; return; }
+
+      // Read character sprites fresh each frame so skin changes take effect
+      const chars = window._skinCharacters || {};
+      const hasChars = Object.keys(chars).length > 0;
 
       const canvasW = marqueeCanvas.width;
       const canvasH = marqueeCanvas.height;
@@ -347,8 +355,9 @@
     return img;
   }
 
-  // ── Spectrum Analyser ─────────────────────────────────────────────────
+  // ── Visualizer (mini-vis modes: spectrum / oscilloscope / off) ────────
   let visFrame = null;
+  let miniVisMode = "spectrum"; // "spectrum" | "oscilloscope" | "off"
   const NUM_BARS = 19;
   const peakHeights = new Float32Array(NUM_BARS);
   const peakVelocity = new Float32Array(NUM_BARS);
@@ -357,6 +366,13 @@
   const simBars = new Float32Array(NUM_BARS);
   const simTargets = new Float32Array(NUM_BARS);
   let simTick = 0;
+  let visStartTime = performance.now() / 1000;
+  let visLastTime = visStartTime;
+
+  // Real audio data from bridge
+  let hasRealAudio = false;
+  let realAudioBars = null;
+  let audioPollTimer = null;
 
   // Default vis colors (overridden by skin's VISCOLOR.TXT)
   const defaultVisColors = [
@@ -374,46 +390,78 @@
     return window._skinVisColors || defaultVisColors;
   }
 
-  function drawVis() {
-    if (!visCtx) return;
-    const w = visCanvas.width;
-    const h = visCanvas.height;
-    const colors = getVisColors();
+  // Fast-poll audio data from bridge (~120ms)
+  async function pollAudioData() {
+    const r = await sendMessage({ type: "GET_AUDIO_DATA" });
+    if (r && r.real && r.bars) {
+      hasRealAudio = true;
+      realAudioBars = r.bars;
+    } else {
+      // Don't immediately clear hasRealAudio — keep it true if we had it before
+      // (avoids flicker on transient failures). Only clear if we never had it.
+      if (!hasRealAudio) realAudioBars = null;
+    }
+  }
+
+  function startAudioPolling() {
+    if (audioPollTimer) return;
+    pollAudioData();
+    audioPollTimer = setInterval(pollAudioData, 120);
+  }
+
+  // Update simulated bar data (shared by all modes)
+  function updateSimBars() {
     const isPlaying = currentState.state === "playing";
-
-    // Background
-    visCtx.fillStyle = colors[0] || "rgb(0,0,0)";
-    visCtx.fillRect(0, 0, w, h);
-
-    const barW = 3;
-    const gap = 1;
-
-    // Update simulated targets every ~6 frames for natural rhythm
     simTick++;
-    if (simTick % 6 === 0 && isPlaying) {
+
+    if (hasRealAudio && realAudioBars) {
+      // Use real FFT data as targets
       for (let i = 0; i < NUM_BARS; i++) {
-        // Bass bars (left) tend higher, treble (right) tend lower
+        simTargets[i] = realAudioBars[i] || 0;
+      }
+    } else if (simTick % 6 === 0 && isPlaying) {
+      // Fallback: simulated random targets
+      for (let i = 0; i < NUM_BARS; i++) {
         const bassBoost = Math.max(0, 1 - i / NUM_BARS);
         const base = 0.15 + bassBoost * 0.35;
-        // Add randomness with occasional "beats" (high spikes)
         const beat = Math.random() < 0.12 ? 0.4 : 0;
         simTargets[i] = Math.min(1, base + Math.random() * 0.35 + beat);
       }
     }
 
+    // Smooth interpolation toward target (real or simulated)
+    const lerp = hasRealAudio ? 0.35 : 0.18; // faster lerp for real data
     for (let i = 0; i < NUM_BARS; i++) {
-      let barVal;
-      if (isPlaying) {
-        // Smooth interpolation toward target
-        simBars[i] += (simTargets[i] - simBars[i]) * 0.18;
-        barVal = simBars[i];
+      if (isPlaying || hasRealAudio) {
+        simBars[i] += (simTargets[i] - simBars[i]) * lerp;
       } else {
-        // Decay to zero when not playing
         simBars[i] *= 0.9;
-        barVal = simBars[i];
       }
+      // Update peaks
+      if (simBars[i] > peakHeights[i]) {
+        peakHeights[i] = simBars[i];
+        peakVelocity[i] = 0;
+      } else {
+        peakVelocity[i] += 0.005;
+        peakHeights[i] -= peakVelocity[i];
+        if (peakHeights[i] < 0) peakHeights[i] = 0;
+      }
+    }
+  }
 
-      // Bar height
+  // Mode: Spectrum Analyzer
+  function drawVisSpectrum() {
+    const w = visCanvas.width;
+    const h = visCanvas.height;
+    const colors = getVisColors();
+    const barW = 3;
+    const gap = 1;
+
+    visCtx.fillStyle = colors[0] || "rgb(0,0,0)";
+    visCtx.fillRect(0, 0, w, h);
+
+    for (let i = 0; i < NUM_BARS; i++) {
+      const barVal = simBars[i];
       const bh = barVal * h;
       const x = i * (barW + gap);
       const numSegs = Math.ceil(bh / 2);
@@ -425,22 +473,91 @@
         visCtx.fillRect(x, sy, barW, 1);
       }
 
-      // Falling peak dot
-      if (barVal > peakHeights[i]) {
-        peakHeights[i] = barVal;
-        peakVelocity[i] = 0;
-      } else {
-        peakVelocity[i] += 0.005;
-        peakHeights[i] -= peakVelocity[i];
-        if (peakHeights[i] < 0) peakHeights[i] = 0;
-      }
-
       if (peakHeights[i] > 0.02) {
         const peakY = h - Math.floor(peakHeights[i] * h) - 1;
         visCtx.fillStyle = colors[23] || "rgb(200,200,200)";
         visCtx.fillRect(x, Math.max(0, peakY), barW, 1);
       }
     }
+  }
+
+  // Mode: Oscilloscope — synthesize pseudo-waveform from simBars
+  function drawVisOscilloscope() {
+    const w = visCanvas.width;
+    const h = visCanvas.height;
+    const colors = getVisColors();
+
+    visCtx.fillStyle = colors[0] || "rgb(0,0,0)";
+    visCtx.fillRect(0, 0, w, h);
+
+    const midY = h / 2;
+    // Synthesize a waveform from bar data using additive sine waves
+    const t = performance.now() / 1000;
+    visCtx.strokeStyle = colors[18] || "rgb(57,173,0)";
+    visCtx.lineWidth = 1;
+    visCtx.beginPath();
+
+    for (let x = 0; x < w; x++) {
+      let y = 0;
+      for (let i = 0; i < NUM_BARS; i++) {
+        const freq = 1 + i * 0.7;
+        const amp = simBars[i] * 0.4;
+        y += amp * Math.sin(t * freq * 3 + x * freq * 0.15);
+      }
+      const py = midY + y * h * 0.5;
+      if (x === 0) visCtx.moveTo(x, py);
+      else visCtx.lineTo(x, py);
+    }
+    visCtx.stroke();
+  }
+
+  // Mode: Off — just background
+  function drawVisOff() {
+    const colors = getVisColors();
+    visCtx.fillStyle = colors[0] || "rgb(0,0,0)";
+    visCtx.fillRect(0, 0, visCanvas.width, visCanvas.height);
+  }
+
+  // "SIM" indicator — 3×5 pixel-art bitmaps for S, I, M
+  const SIM_GLYPHS = {
+    S: [0b110, 0b100, 0b010, 0b001, 0b110],
+    I: [0b010, 0b010, 0b010, 0b010, 0b010],
+    M: [0b101, 0b111, 0b101, 0b101, 0b101]
+  };
+
+  function drawSimLabel() {
+    if (hasRealAudio || miniVisMode === "off") return;
+    const w = visCanvas.width;
+    const h = visCanvas.height;
+    const colors = getVisColors();
+    // Use a dim version of the peak color
+    visCtx.fillStyle = colors[1] || "rgba(255,255,255,0.15)";
+    const letters = ["S", "I", "M"];
+    const startX = w - 12; // 3 chars × 3px + 2px spacing = ~11px from right
+    const startY = h - 6;  // 5px tall + 1px padding from bottom
+    for (let c = 0; c < letters.length; c++) {
+      const glyph = SIM_GLYPHS[letters[c]];
+      const ox = startX + c * 4;
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 3; col++) {
+          if (glyph[row] & (1 << (2 - col))) {
+            visCtx.fillRect(ox + col, startY + row, 1, 1);
+          }
+        }
+      }
+    }
+  }
+
+  // Main vis loop — dispatches to active mode
+  function drawVis() {
+    if (!visCtx) return;
+    updateSimBars();
+
+    if (miniVisMode === "spectrum") drawVisSpectrum();
+    else if (miniVisMode === "oscilloscope") drawVisOscilloscope();
+    else drawVisOff();
+
+    drawSimLabel();
 
     visFrame = requestAnimationFrame(drawVis);
   }
@@ -449,6 +566,79 @@
     if (!visFrame) drawVis();
   }
   function stopVis() { if (visFrame) { cancelAnimationFrame(visFrame); visFrame = null; } }
+
+  // ── Vis Context Menu ────────────────────────────────────────────────
+  const visContainer  = $("#vis-container");
+  const visContextMenu = $("#vis-context-menu");
+  let visWindowId = null; // track the separate vis window
+
+  function showVisContextMenu(x, y) {
+    // Update checked state
+    visContextMenu.querySelectorAll(".vis-menu-item[data-mode]").forEach(el => {
+      el.classList.toggle("checked", el.dataset.mode === miniVisMode);
+    });
+    // Position near click, clamped within winamp bounds
+    visContextMenu.style.left = Math.min(x, 275 - 120) + "px";
+    visContextMenu.style.top = Math.min(y, 116 - 80) + "px";
+    visContextMenu.classList.remove("hidden");
+  }
+
+  function hideVisContextMenu() {
+    visContextMenu.classList.add("hidden");
+  }
+
+  visContainer.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = winamp.getBoundingClientRect();
+    showVisContextMenu(e.clientX - rect.left, e.clientY - rect.top);
+  });
+
+  visContextMenu.addEventListener("click", (e) => {
+    const item = e.target.closest(".vis-menu-item");
+    if (!item) return;
+
+    if (item.dataset.mode) {
+      miniVisMode = item.dataset.mode;
+      window.VisStorage.setMiniVisMode(miniVisMode);
+    } else if (item.dataset.action === "open-vis") {
+      openVisWindow();
+    } else if (item.dataset.action === "edit-vis") {
+      chrome.tabs.create({ url: chrome.runtime.getURL("vis-editor.html") });
+    }
+    hideVisContextMenu();
+  });
+
+  // Close menu on click anywhere else
+  document.addEventListener("click", (e) => {
+    if (!visContextMenu.contains(e.target)) hideVisContextMenu();
+  });
+
+  // Open separate visualizer window
+  async function openVisWindow() {
+    // Check if already open
+    if (visWindowId !== null) {
+      try {
+        const win = await chrome.windows.get(visWindowId);
+        if (win) {
+          await chrome.windows.update(visWindowId, { focused: true });
+          return;
+        }
+      } catch { visWindowId = null; }
+    }
+    const win = await chrome.windows.create({
+      url: chrome.runtime.getURL("vis-window.html"),
+      type: "popup",
+      width: 500,
+      height: 400
+    });
+    visWindowId = win.id;
+  }
+
+  // Track vis window closure
+  chrome.windows.onRemoved.addListener((windowId) => {
+    if (windowId === visWindowId) visWindowId = null;
+  });
 
   // ── Window sizing ────────────────────────────────────────────────
   let expectedContentW = 275;
@@ -838,30 +1028,186 @@
   });
   btnClose.addEventListener("click", () => window.close());
 
-  // Load custom skin — double-click the title bar
+  // ── Skin Selector ──────────────────────────────────────────────────────
+
+  function refreshAfterSkinChange() {
+    Object.keys(charImageCache).forEach(k => delete charImageCache[k]);
+    lastSmallText.clear();
+    lastTrackKey = "";
+    precacheCharImages();
+    updateUI();
+    applyAllSliderBgs();
+    drawEQGraph();
+    if (playlistVisible) renderPlaylist();
+    applySkinSelectorColors();
+    syncVisColorsToStorage();
+  }
+
+  function applySkinSelectorColors() {
+    const plc = window._skinPleditColors;
+    if (!plc) return;
+    skinSelector.style.backgroundColor = plc.normalbg;
+    skinSelectorList.querySelectorAll(".skin-entry").forEach(el => {
+      el.style.color = el.classList.contains("active") ? plc.current : plc.normal;
+    });
+    skinAddBtn.style.color = plc.normal;
+    skinAddBtn.style.borderTopColor = plc.selectedbg;
+  }
+
+  function toggleSkinSelector() {
+    skinSelectorVisible = !skinSelectorVisible;
+    skinSelector.classList.toggle("hidden", !skinSelectorVisible);
+    if (skinSelectorVisible) renderSkinList();
+  }
+
+  function closeSkinSelector() {
+    skinSelectorVisible = false;
+    skinSelector.classList.add("hidden");
+  }
+
+  async function renderSkinList() {
+    const { skins, activeSkinId } = await window.SkinStorage.list();
+    const canAdd = await window.SkinStorage.canAddSkin();
+
+    skinSelectorList.innerHTML = "";
+
+    // Default entry (always first, not removable)
+    const defaultEntry = document.createElement("div");
+    defaultEntry.className = "skin-entry" + (activeSkinId === null ? " active" : "");
+    defaultEntry.innerHTML =
+      '<span class="skin-entry-indicator">' + (activeSkinId === null ? ">" : "") + '</span>' +
+      '<span class="skin-entry-name">Default</span>';
+    defaultEntry.addEventListener("click", () => selectSkin(null));
+    skinSelectorList.appendChild(defaultEntry);
+
+    // Custom skins
+    for (const skin of skins) {
+      const entry = document.createElement("div");
+      entry.className = "skin-entry" + (activeSkinId === skin.id ? " active" : "");
+
+      const indicator = document.createElement("span");
+      indicator.className = "skin-entry-indicator";
+      indicator.textContent = activeSkinId === skin.id ? ">" : "";
+
+      const name = document.createElement("span");
+      name.className = "skin-entry-name";
+      name.textContent = skin.name;
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "skin-entry-delete";
+      deleteBtn.textContent = "\u00d7";
+      deleteBtn.title = "Remove skin";
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        removeSkin(skin.id);
+      });
+
+      entry.appendChild(indicator);
+      entry.appendChild(name);
+      entry.appendChild(deleteBtn);
+      entry.addEventListener("click", () => selectSkin(skin.id));
+      skinSelectorList.appendChild(entry);
+    }
+
+    // Add button state
+    if (canAdd) {
+      skinAddBtn.textContent = "+ ADD SKIN";
+      skinAddBtn.classList.remove("disabled");
+    } else {
+      skinAddBtn.textContent = "LIMIT REACHED";
+      skinAddBtn.classList.add("disabled");
+    }
+
+    applySkinSelectorColors();
+  }
+
+  async function loadDefaultSkin() {
+    const skinUrl = chrome.runtime.getURL("skins/base.wsz");
+    await window.SkinLoader.loadAndApply(skinUrl);
+    refreshAfterSkinChange();
+  }
+
+  async function selectSkin(skinId) {
+    try {
+      if (skinId === null) {
+        await window.SkinStorage.setActiveSkinId(null);
+        await loadDefaultSkin();
+      } else {
+        const buffer = await window.SkinStorage.loadById(skinId);
+        if (!buffer) {
+          // Corrupt/missing — remove and fall back
+          await window.SkinStorage.delete(skinId);
+          await window.SkinStorage.setActiveSkinId(null);
+          await loadDefaultSkin();
+        } else {
+          const skinData = await window.SkinLoader.loadFromZip(buffer);
+          window.SkinLoader.apply(skinData);
+          await window.SkinStorage.setActiveSkinId(skinId);
+          refreshAfterSkinChange();
+        }
+      }
+    } catch (err) {
+      console.error("Failed to apply skin:", err);
+      await window.SkinStorage.setActiveSkinId(null);
+      await loadDefaultSkin();
+    }
+    closeSkinSelector();
+  }
+
+  async function removeSkin(skinId) {
+    const activeId = await window.SkinStorage.getActiveSkinId();
+    await window.SkinStorage.delete(skinId);
+    if (activeId === skinId) {
+      await loadDefaultSkin();
+    }
+    renderSkinList();
+  }
+
+  // Double-click title bar → toggle skin selector
   $("#title-bar").addEventListener("dblclick", (e) => {
     e.preventDefault();
+    toggleSkinSelector();
+  });
+
+  // Add skin button
+  skinAddBtn.addEventListener("click", async () => {
+    if (skinAddBtn.classList.contains("disabled")) return;
     skinFileInput.click();
   });
 
+  // File input handler — save to storage after loading
   skinFileInput.addEventListener("change", async () => {
     const file = skinFileInput.files[0];
     if (!file) return;
     try {
-      await window.SkinLoader.loadFromFile(file);
-      // Clear image caches for marquee and kbps/khz
-      Object.keys(charImageCache).forEach(k => delete charImageCache[k]);
-      lastSmallText.clear();
-      lastTrackKey = "";
-      precacheCharImages();
-      updateUI();
-      applyAllSliderBgs();
-      drawEQGraph();
-      if (playlistVisible) renderPlaylist();
+      const buffer = await file.arrayBuffer();
+      const name = file.name.replace(/\.(wsz|zip)$/i, "");
+      const skinData = await window.SkinLoader.loadFromZip(buffer);
+      window.SkinLoader.apply(skinData);
+      await window.SkinStorage.save(name, buffer);
+      refreshAfterSkinChange();
+      closeSkinSelector();
     } catch (err) {
       console.error("Failed to load skin:", err);
     }
     skinFileInput.value = "";
+  });
+
+  // Dismiss skin selector on Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && skinSelectorVisible) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeSkinSelector();
+      return;
+    }
+  }, true);
+
+  // Dismiss skin selector on click outside
+  winamp.addEventListener("click", (e) => {
+    if (skinSelectorVisible && !skinSelector.contains(e.target)) {
+      closeSkinSelector();
+    }
   });
 
   // Keyboard
@@ -909,14 +1255,50 @@
     }
   }
 
+  // ── Sync vis colors to storage for vis-window ──────────────────────
+  function syncVisColorsToStorage() {
+    const colors = getVisColors();
+    chrome.storage.local.set({ visColors: colors });
+  }
+
   // ── Load default skin and start ────────────────────────────────────────
   async function init() {
+    let skinLoaded = false;
+
+    // Restore persisted mini-vis mode
     try {
-      const skinUrl = chrome.runtime.getURL("skins/base.wsz");
-      await window.SkinLoader.loadAndApply(skinUrl);
+      miniVisMode = await window.VisStorage.getMiniVisMode();
+    } catch { /* keep default "spectrum" */ }
+
+    // Try to restore persisted skin
+    try {
+      const activeSkinId = await window.SkinStorage.getActiveSkinId();
+      if (activeSkinId) {
+        const buffer = await window.SkinStorage.loadById(activeSkinId);
+        if (buffer) {
+          const skinData = await window.SkinLoader.loadFromZip(buffer);
+          window.SkinLoader.apply(skinData);
+          skinLoaded = true;
+        } else {
+          // Corrupt entry — clean up
+          await window.SkinStorage.delete(activeSkinId);
+        }
+      }
     } catch (err) {
-      console.warn("Failed to load default skin:", err);
+      console.warn("Failed to restore persisted skin:", err);
     }
+
+    // Fall back to bundled default
+    if (!skinLoaded) {
+      try {
+        const skinUrl = chrome.runtime.getURL("skins/base.wsz");
+        await window.SkinLoader.loadAndApply(skinUrl);
+      } catch (err) {
+        console.warn("Failed to load default skin:", err);
+      }
+    }
+    // Sync vis colors to storage so vis-window can read them
+    syncVisColorsToStorage();
     // Pre-cache digit images so kbps/khz render on first poll
     precacheCharImages();
     // Init EQ slider drag + apply skin slider backgrounds
@@ -928,6 +1310,7 @@
     setTimeout(() => resizeWindowToContent(275, 116), 100);
     startVis();
     startPolling();
+    startAudioPolling();
   }
 
   init();

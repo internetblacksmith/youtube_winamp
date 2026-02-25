@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Winamp Visualization</title>
+  <link rel="stylesheet" href="vis-window.css">
+</head>
+<body>
+  <div id="top-bar">
+    <span id="title">WINAMP VISUALIZATION</span>
+    <div id="controls">
+      <select id="preset-select">
+        <option value="">-- No Preset --</option>
+      </select>
+      <button id="btn-edit" title="Edit Visualizers">Edit</button>
+      <button id="btn-fullscreen" title="Fullscreen">&#x26F6;</button>
+    </div>
+  </div>
+  <div id="canvas-area">
+    <iframe id="sandbox" src="vis-sandbox.html"></iframe>
+    <div id="empty-state">No visualizers yet &mdash; click Edit to create one</div>
+    <div id="error-display" class="hidden"></div>
+  </div>
+  <script src="vis-storage.js"></script>
+  <script src="vis-window.js"></script>
+</body>
+</html>

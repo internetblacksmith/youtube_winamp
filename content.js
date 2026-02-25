@@ -53,6 +53,10 @@
       askBridge({ type: "GET_QUEUE" }).then(sendResponse);
       return true;
     }
+    if (message.type === "GET_AUDIO_DATA") {
+      askBridge({ type: "GET_AUDIO_DATA" }).then(sendResponse);
+      return true;
+    }
     if (message.type === "COMMAND") {
       askBridge({
         type: "COMMAND",

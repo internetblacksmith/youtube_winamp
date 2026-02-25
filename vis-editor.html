@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Winamp Visualizer Editor</title>
+  <link rel="stylesheet" href="vis-editor.css">
+</head>
+<body>
+  <div id="toolbar">
+    <div id="toolbar-left">
+      <span id="toolbar-title">VISUALIZER EDITOR</span>
+      <select id="template-select">
+        <option value="">-- Templates --</option>
+        <option value="spectrum">Spectrum Bars</option>
+        <option value="oscilloscope">Oscilloscope</option>
+        <option value="plasma">Plasma</option>
+        <option value="starfield">Starfield</option>
+      </select>
+    </div>
+    <div id="toolbar-right">
+      <select id="preset-list">
+        <option value="">-- Saved Presets --</option>
+      </select>
+      <input type="text" id="preset-name" placeholder="Preset name..." maxlength="40">
+      <button id="btn-save">Save</button>
+      <button id="btn-delete" disabled>Delete</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="preview-panel">
+      <div id="preview-label">PREVIEW</div>
+      <div id="preview-container">
+        <iframe id="preview-sandbox" src="vis-sandbox.html"></iframe>
+      </div>
+    </div>
+    <div id="editor-panel">
+      <div id="editor-label">CODE <span id="api-hint">vars: ctx, w, h, bars[19], peaks[19], colors[24], t, dt, playing, frame</span></div>
+      <textarea id="code-editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+      <div id="status-bar">
+        <span id="status-text">Ready</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="vis-storage.js"></script>
+  <script src="vis-editor.js"></script>
+</body>
+</html>

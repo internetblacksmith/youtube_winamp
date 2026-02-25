@@ -114,17 +114,57 @@ html, body {
 }
 
 /* ═══ VISUALIZER ═══ 24,43 — 76×16 */
-#visualizer {
+#vis-container {
   position: absolute;
   top: 43px; left: 24px;
   width: 76px; height: 16px;
+}
+#visualizer {
+  width: 76px; height: 16px;
   image-rendering: pixelated;
+}
+
+/* ═══ VIS CONTEXT MENU ═══ */
+.vis-context-menu.hidden { display: none; }
+.vis-context-menu {
+  position: absolute;
+  z-index: 200;
+  background-color: #2A2A2A;
+  border: 1px solid #555;
+  padding: 2px 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8px;
+  min-width: 110px;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+.vis-menu-item {
+  padding: 2px 10px 2px 14px;
+  color: #ccc;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 12px;
+  position: relative;
+}
+.vis-menu-item:hover {
+  background-color: #0000a0;
+  color: #fff;
+}
+.vis-menu-item.checked::before {
+  content: ">";
+  position: absolute;
+  left: 5px;
+  color: #0f0;
+}
+.vis-menu-separator {
+  height: 1px;
+  background-color: #555;
+  margin: 2px 4px;
 }
 
 /* ═══ MARQUEE ═══ 111,24 — 154×6 */
 #marquee {
   position: absolute;
-  left: 111px; top: 24px;
+  left: 111px; top: 27px;
   width: 154px; height: 6px;
   overflow: hidden;
 }
@@ -673,4 +713,120 @@ html, body {
 #pl-left-border, #pl-right-border { background-color: #3a3a26; }
 #pl-bottom-left, #pl-bottom-right, #pl-bottom-tile { background-color: #3a3a26; }
 #pl-scroll-handle { background-color: #555548; }
+/* ═══════════════════════════════════════════════════════════════════════════
+   SKIN SELECTOR OVERLAY — 275×116, inside #winamp
+   Styled with PLEDIT colors (green/orange on dark)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.skin-selector.hidden { display: none; }
+
+.skin-selector {
+  position: absolute;
+  top: 0; left: 0;
+  width: 275px; height: 116px;
+  z-index: 100;
+  background-color: #1A120A;
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
+}
+
+#skin-selector-title {
+  height: 14px;
+  line-height: 14px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: #FFFF00;
+  background-color: #0000a0;
+  flex-shrink: 0;
+}
+
+#skin-selector-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Hide scrollbar but keep scrollable */
+#skin-selector-list::-webkit-scrollbar { display: none; }
+
+.skin-entry {
+  height: 18px;
+  line-height: 18px;
+  padding: 0 6px;
+  font-size: 8px;
+  color: #FF8924;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.skin-entry:hover {
+  background-color: #944E11;
+}
+.skin-entry.active {
+  color: #FFFF00;
+}
+.skin-entry-indicator {
+  width: 8px;
+  flex-shrink: 0;
+  font-size: 7px;
+  color: #FFFF00;
+}
+.skin-entry-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.skin-entry-delete {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  text-align: center;
+  font-size: 9px;
+  color: #FF8924;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.skin-entry-delete:hover {
+  color: #FF4444;
+}
+
+#skin-add-btn {
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: bold;
+  color: #FF8924;
+  background-color: #2A1A0A;
+  border: none;
+  border-top: 1px solid #944E11;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: 0.5px;
+}
+#skin-add-btn:hover {
+  background-color: #3A2A1A;
+  color: #FFFF00;
+}
+#skin-add-btn.disabled {
+  color: #666;
+  cursor: default;
+  background-color: #2A1A0A;
+}
+#skin-add-btn.disabled:hover {
+  color: #666;
+  background-color: #2A1A0A;
+}
+
 /* Skin CSS overrides all of the above once loaded */

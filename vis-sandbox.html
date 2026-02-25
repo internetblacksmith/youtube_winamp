@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(function () {
+  "use strict";
+
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  let renderFn = null;
+  let frameCount = 0;
+  let errorCount = 0;
+  let errorWindowStart = 0;
+  let disabled = false;
+  let startTime = performance.now() / 1000;
+  let lastFrameTime = startTime;
+
+  function resize(w, h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+
+  // Initial size
+  resize(canvas.clientWidth, canvas.clientHeight);
+
+  window.addEventListener("message", (e) => {
+    const msg = e.data;
+    if (!msg || !msg.type) return;
+
+    if (msg.type === "SET_SCRIPT") {
+      try {
+        renderFn = new Function(
+          "ctx", "w", "h", "bars", "peaks", "colors", "t", "dt", "playing", "frame",
+          msg.code
+        );
+        disabled = false;
+        errorCount = 0;
+        frameCount = 0;
+        startTime = performance.now() / 1000;
+        lastFrameTime = startTime;
+        e.source.postMessage({ type: "READY" }, "*");
+      } catch (err) {
+        renderFn = null;
+        e.source.postMessage({ type: "ERROR", message: err.message }, "*");
+      }
+      return;
+    }
+
+    if (msg.type === "RENDER_FRAME") {
+      if (!renderFn || disabled) return;
+
+      const now = performance.now() / 1000;
+      const t = now - startTime;
+      const dt = now - lastFrameTime;
+      lastFrameTime = now;
+      frameCount++;
+
+      try {
+        renderFn(
+          ctx,
+          canvas.width,
+          canvas.height,
+          msg.bars ? new Float32Array(msg.bars) : new Float32Array(19),
+          msg.peaks ? new Float32Array(msg.peaks) : new Float32Array(19),
+          msg.colors || [],
+          t,
+          dt,
+          msg.playing || false,
+          frameCount
+        );
+      } catch (err) {
+        // Error tracking: disable after 10+ errors in 60 frames
+        if (frameCount - errorWindowStart > 60) {
+          errorCount = 0;
+          errorWindowStart = frameCount;
+        }
+        errorCount++;
+        if (errorCount >= 10) {
+          disabled = true;
+          e.source.postMessage({
+            type: "ERROR",
+            message: "Script disabled: too many errors (" + err.message + ")"
+          }, "*");
+        }
+      }
+      return;
+    }
+
+    if (msg.type === "RESIZE") {
+      resize(msg.width || canvas.clientWidth, msg.height || canvas.clientHeight);
+      return;
+    }
+
+    if (msg.type === "CLEAR") {
+      renderFn = null;
+      disabled = false;
+      errorCount = 0;
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+  });
+})();
+</script>
+</body>
+</html>

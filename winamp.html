@@ -32,7 +32,19 @@
       </div>
 
       <!-- VISUALIZER (24,43 — 76×16) -->
-      <canvas id="visualizer" width="76" height="16"></canvas>
+      <div id="vis-container">
+        <canvas id="visualizer" width="76" height="16"></canvas>
+      </div>
+
+      <!-- VIS CONTEXT MENU -->
+      <div id="vis-context-menu" class="vis-context-menu hidden">
+        <div class="vis-menu-item" data-mode="spectrum">Spectrum Analyzer</div>
+        <div class="vis-menu-item" data-mode="oscilloscope">Oscilloscope</div>
+        <div class="vis-menu-item" data-mode="off">Off</div>
+        <div class="vis-menu-separator"></div>
+        <div class="vis-menu-item" data-action="open-vis">Open Visualizer...</div>
+        <div class="vis-menu-item" data-action="edit-vis">Edit Visualizers...</div>
+      </div>
 
       <!-- MARQUEE (111,24 — 154×6) -->
       <div id="marquee">
@@ -83,6 +95,13 @@
       <!-- SHUFFLE / REPEAT -->
       <button type="button" id="btn-shuffle" title="Shuffle"></button>
       <button type="button" id="btn-repeat" title="Repeat"></button>
+
+      <!-- SKIN SELECTOR OVERLAY -->
+      <div id="skin-selector" class="skin-selector hidden">
+        <div id="skin-selector-title">SKINS</div>
+        <div id="skin-selector-list"></div>
+        <button type="button" id="skin-add-btn">+ ADD SKIN</button>
+      </div>
 
     </div>
 
@@ -156,6 +175,8 @@
 
   <script src="vendor/jszip.min.js"></script>
   <script src="skin-loader.js"></script>
+  <script src="skin-storage.js"></script>
+  <script src="vis-storage.js"></script>
   <script src="winamp.js"></script>
 </body>
 </html>

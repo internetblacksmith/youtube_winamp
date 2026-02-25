@@ -92,6 +92,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.type === "GET_AUDIO_DATA") {
+    findMusicTab().then(result => {
+      if (!result) {
+        sendResponse({ bars: null, real: false });
+        return;
+      }
+      chrome.tabs.sendMessage(result.tab.id, { type: "GET_AUDIO_DATA" }, (response) => {
+        if (chrome.runtime.lastError || !response) {
+          sendResponse({ bars: null, real: false });
+        } else {
+          sendResponse(response);
+        }
+      });
+    });
+    return true;
+  }
+
   if (message.type === "RESIZE_WINDOW") {
     if (winampWindowId !== null) {
       chrome.windows.update(winampWindowId, {
