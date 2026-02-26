@@ -1,0 +1,30 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - name: Build extension ZIP
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          zip -r youtube-winamp-${VERSION}.zip \
+            manifest.json background.js content.js \
+            bridge-youtube.js bridge-spotify.js bridge-amazon.js \
+            winamp.html winamp.css winamp.js skin-loader.js \
+            icons/ skins/ vendor/ fonts/ \
+            LICENSE README.md PRIVACY.md
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: youtube-winamp-*.zip
+          generate_release_notes: true
