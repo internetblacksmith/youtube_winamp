@@ -276,6 +276,56 @@
     return { ok: true };
   }
 
+  // ── Winamp navbar button ───────────────────────────────────────────────
+  var WINAMP_BTN_ID = "ytwinamp-nav-btn";
+
+  function injectWinampButton() {
+    // Already injected
+    if (document.getElementById(WINAMP_BTN_ID)) return;
+
+    var rightContent = document.querySelector("ytmusic-nav-bar #right-content");
+    if (!rightContent) return;
+
+    var castBtn = rightContent.querySelector("ytmusic-cast-button.cast-button") ||
+                  rightContent.querySelector("ytmusic-cast-button");
+
+    var btn = document.createElement("button");
+    btn.id = WINAMP_BTN_ID;
+    btn.title = "Open Winamp";
+    btn.setAttribute("aria-label", "Open Winamp");
+    btn.style.cssText =
+      "background:none;border:none;cursor:pointer;padding:8px;display:flex;" +
+      "align-items:center;justify-content:center;opacity:0.7;transition:opacity .2s;";
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("width", "24");
+    svg.setAttribute("height", "24");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    var path = document.createElementNS(svgNS, "path");
+    path.setAttribute("d", "M13 2L4 14h6l-2 8 9-12h-6l2-8z");
+    path.setAttribute("fill", "#fff");
+    svg.appendChild(path);
+    btn.appendChild(svg);
+    btn.addEventListener("mouseenter", function () { btn.style.opacity = "1"; });
+    btn.addEventListener("mouseleave", function () { btn.style.opacity = "0.7"; });
+    btn.addEventListener("click", function () {
+      window.postMessage({ direction: "YTWINAMP_BRIDGE_REQUEST", type: "OPEN_WINAMP" }, "*");
+    });
+
+    if (castBtn) {
+      rightContent.insertBefore(btn, castBtn);
+    } else {
+      rightContent.appendChild(btn);
+    }
+  }
+
+  // YouTube Music is an SPA — re-inject if the button disappears
+  setInterval(injectWinampButton, 2000);
+  // Also try immediately and after a short delay for initial page load
+  injectWinampButton();
+  setTimeout(injectWinampButton, 1000);
+
   // Listen for requests from content script via postMessage
   window.addEventListener("message", function (e) {
     if (e.source !== window) return;

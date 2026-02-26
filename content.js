@@ -12,7 +12,15 @@
   // Listen for responses from the bridge (MAIN world)
   window.addEventListener("message", (e) => {
     if (e.source !== window) return;
-    if (!e.data || e.data.direction !== "YTWINAMP_BRIDGE_RESPONSE") return;
+    if (!e.data) return;
+
+    // Fire-and-forget messages from bridge
+    if (e.data.direction === "YTWINAMP_BRIDGE_REQUEST" && e.data.type === "OPEN_WINAMP") {
+      chrome.runtime.sendMessage({ type: "OPEN_WINAMP" });
+      return;
+    }
+
+    if (e.data.direction !== "YTWINAMP_BRIDGE_RESPONSE") return;
     const { id, data } = e.data;
     const cb = pending.get(id);
     if (cb) {
