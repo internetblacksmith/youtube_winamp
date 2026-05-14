@@ -10,9 +10,8 @@ const SERVICE_PATTERNS = [
   { pattern: "*://music.amazon.com/*",  name: "amazon",   openUrl: "https://music.amazon.com" },
 ];
 
-// Open Winamp window when extension icon is clicked
-chrome.action.onClicked.addListener(async () => {
-  // If window already exists, focus it
+// Open or focus the Winamp popup window
+async function openOrFocusWinamp() {
   if (winampWindowId !== null) {
     try {
       const win = await chrome.windows.get(winampWindowId);
@@ -25,7 +24,6 @@ chrome.action.onClicked.addListener(async () => {
     }
   }
 
-  // Create the Winamp window — winamp.js will auto-resize to fit content
   const win = await chrome.windows.create({
     url: chrome.runtime.getURL("winamp.html"),
     type: "popup",
@@ -34,7 +32,10 @@ chrome.action.onClicked.addListener(async () => {
     focused: true
   });
   winampWindowId = win.id;
-});
+}
+
+// Open Winamp window when extension icon is clicked
+chrome.action.onClicked.addListener(() => openOrFocusWinamp());
 
 // Clean up when window is closed
 chrome.windows.onRemoved.addListener((windowId) => {
