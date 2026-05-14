@@ -9,10 +9,19 @@
   // ── Pending response callbacks ──────────────────────────────────────────
   const pending = new Map();
 
-  // Listen for responses from the bridge (MAIN world)
+  // Listen for messages from the bridge (MAIN world)
   window.addEventListener("message", (e) => {
     if (e.source !== window) return;
-    if (!e.data || e.data.direction !== "YTWINAMP_BRIDGE_RESPONSE") return;
+    if (!e.data) return;
+
+    // Bridge-originated fire-and-forget events → relay to service worker
+    if (e.data.direction === "YTWINAMP_PAGE_EVENT") {
+      chrome.runtime.sendMessage({ type: e.data.type, payload: e.data.payload });
+      return;
+    }
+
+    // Responses to content-originated requests
+    if (e.data.direction !== "YTWINAMP_BRIDGE_RESPONSE") return;
     const { id, data } = e.data;
     const cb = pending.get(id);
     if (cb) {
