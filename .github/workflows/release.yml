@@ -13,16 +13,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Verify manifest version matches tag
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
+          if [ "$VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "::error::Tag v$VERSION does not match manifest.json version $MANIFEST_VERSION"
+            exit 1
+          fi
+
       - run: npm test
+
       - name: Build extension ZIP
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          zip -r youtube-winamp-${VERSION}.zip \
-            manifest.json background.js content.js \
-            bridge-youtube.js bridge-spotify.js bridge-amazon.js \
-            winamp.html winamp.css winamp.js skin-loader.js \
-            icons/ skins/ vendor/ fonts/ \
-            LICENSE README.md PRIVACY.md
+          git archive --format=zip --output=youtube-winamp-${VERSION}.zip HEAD
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

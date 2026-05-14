@@ -1,0 +1,10 @@
+# Files excluded from `git archive` (and therefore the release ZIP).
+# Keep this list in sync with anything that's dev-only.
+.gitattributes  export-ignore
+.gitignore      export-ignore
+.github/        export-ignore
+tests/          export-ignore
+scripts/        export-ignore
+package.json    export-ignore
+package-lock.json export-ignore
+CLAUDE.md       export-ignore
