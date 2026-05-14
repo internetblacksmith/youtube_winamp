@@ -44,7 +44,11 @@ if (capture('git rev-parse HEAD') !== capture('git rev-parse origin/main')) {
 
 // --- Compute new version ---
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
-const [major, minor, patch] = manifest.version.split('.').map(Number);
+const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(manifest.version);
+if (!match) {
+  fatal(`manifest.json version must be strict semver (x.y.z), got "${manifest.version}"`);
+}
+const [major, minor, patch] = match.slice(1).map(Number);
 
 let newVersion;
 switch (bump) {
