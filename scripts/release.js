@@ -76,7 +76,7 @@ console.log(`Bumped version: ${major}.${minor}.${patch} → ${newVersion}`);
 run('git add manifest.json');
 run(`git commit -S -m "release: ${tag}"`);
 run(`git tag -s ${tag} -m "Release ${tag}"`);
-run('git push --follow-tags');
+run('git push --follow-tags origin main');
 
 console.log(`\nReleased ${tag}`);
 console.log('Watch the release workflow: https://github.com/internetblacksmith/youtube_winamp/actions');
