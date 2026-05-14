@@ -1,0 +1,37 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Verify manifest version matches tag
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
+          if [ "$VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "::error::Tag v$VERSION does not match manifest.json version $MANIFEST_VERSION"
+            exit 1
+          fi
+
+      - run: npm test
+
+      - name: Build extension ZIP
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          git archive --format=zip --output=youtube-winamp-${VERSION}.zip HEAD
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2.6.2
+        with:
+          files: youtube-winamp-*.zip
+          generate_release_notes: true
