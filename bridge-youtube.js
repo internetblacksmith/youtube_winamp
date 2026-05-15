@@ -276,6 +276,63 @@
     return { ok: true };
   }
 
+  // ── Winamp navbar button ───────────────────────────────────────────────
+  var WINAMP_BTN_ID = "ytwinamp-nav-btn";
+  var NAV_BAR_SELECTOR = "ytmusic-nav-bar";
+  var RIGHT_CONTENT_SELECTOR = "#right-content";
+
+  function injectWinampButton() {
+    if (document.getElementById(WINAMP_BTN_ID)) return;
+
+    var navBar = document.querySelector(NAV_BAR_SELECTOR);
+    if (!navBar) return;
+    var rightContent = navBar.querySelector(RIGHT_CONTENT_SELECTOR);
+    if (!rightContent) {
+      console.warn("[ytwinamp] " + NAV_BAR_SELECTOR + " " + RIGHT_CONTENT_SELECTOR + " not found — YT Music DOM may have changed");
+      return;
+    }
+
+    var castBtn = rightContent.querySelector("ytmusic-cast-button.cast-button") ||
+                  rightContent.querySelector("ytmusic-cast-button");
+
+    var btn = document.createElement("button");
+    btn.id = WINAMP_BTN_ID;
+    btn.title = "Open Winamp";
+    btn.setAttribute("aria-label", "Open Winamp");
+    btn.style.cssText =
+      "background:none;border:none;cursor:pointer;padding:8px;display:flex;" +
+      "align-items:center;justify-content:center;opacity:0.7;transition:opacity .2s;" +
+      "color:var(--ytmusic-icon-color,#fff);";
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("width", "24");
+    svg.setAttribute("height", "24");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    var path = document.createElementNS(svgNS, "path");
+    path.setAttribute("d", "M13 2L4 14h6l-2 8 9-12h-6l2-8z");
+    path.setAttribute("fill", "currentColor");
+    svg.appendChild(path);
+    btn.appendChild(svg);
+    btn.addEventListener("mouseenter", function () { btn.style.opacity = "1"; });
+    btn.addEventListener("mouseleave", function () { btn.style.opacity = "0.7"; });
+    btn.addEventListener("click", function () {
+      window.postMessage({ direction: "YTWINAMP_PAGE_EVENT", type: "OPEN_WINAMP" }, "*");
+    });
+
+    if (castBtn) {
+      rightContent.insertBefore(btn, castBtn);
+    } else {
+      rightContent.appendChild(btn);
+    }
+  }
+
+  // YT Music is an SPA — the nav bar can re-render. Observe and re-inject
+  // only when the DOM actually changes, instead of polling on a timer.
+  injectWinampButton();
+  var observerTarget = document.querySelector(NAV_BAR_SELECTOR) || document.body;
+  new MutationObserver(injectWinampButton).observe(observerTarget, { childList: true, subtree: true });
+
   // Listen for requests from content script via postMessage
   window.addEventListener("message", function (e) {
     if (e.source !== window) return;
