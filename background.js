@@ -3,6 +3,7 @@
 
 let winampWindowId = null;
 let lastService = null; // remember last connected service
+let openOrFocusInFlight = null; // serializes concurrent open/focus calls
 
 const SERVICE_PATTERNS = [
   { pattern: "*://music.youtube.com/*", name: "youtube", openUrl: "https://music.youtube.com" },
@@ -10,28 +11,36 @@ const SERVICE_PATTERNS = [
   { pattern: "*://music.amazon.com/*",  name: "amazon",   openUrl: "https://music.amazon.com" },
 ];
 
-// Open or focus the Winamp popup window
-async function openOrFocusWinamp() {
-  if (winampWindowId !== null) {
-    try {
-      const win = await chrome.windows.get(winampWindowId);
-      if (win) {
+// Open or focus the Winamp popup window. Serialized so two rapid clicks
+// (or click + bridge event) can't both pass the winampWindowId === null
+// check and each create their own window.
+function openOrFocusWinamp() {
+  if (openOrFocusInFlight) return openOrFocusInFlight;
+
+  openOrFocusInFlight = (async () => {
+    if (winampWindowId !== null) {
+      try {
+        await chrome.windows.get(winampWindowId);
         await chrome.windows.update(winampWindowId, { focused: true });
         return;
+      } catch {
+        winampWindowId = null;
       }
-    } catch {
-      winampWindowId = null;
     }
-  }
 
-  const win = await chrome.windows.create({
-    url: chrome.runtime.getURL("winamp.html"),
-    type: "popup",
-    width: 275,
-    height: 150,
-    focused: true
+    const win = await chrome.windows.create({
+      url: chrome.runtime.getURL("winamp.html"),
+      type: "popup",
+      width: 275,
+      height: 150,
+      focused: true
+    });
+    winampWindowId = win.id;
+  })().finally(() => {
+    openOrFocusInFlight = null;
   });
-  winampWindowId = win.id;
+
+  return openOrFocusInFlight;
 }
 
 // Open Winamp window when extension icon is clicked
