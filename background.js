@@ -68,6 +68,11 @@ async function findMusicTab() {
 
 // Message routing between Winamp window and content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "OPEN_WINAMP") {
+    openOrFocusWinamp();
+    return false;
+  }
+
   if (message.type === "GET_STATE") {
     findMusicTab().then(result => {
       if (!result) {
